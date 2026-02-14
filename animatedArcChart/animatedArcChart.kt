@@ -29,7 +29,6 @@ private fun getAnglesFromItems(items: List<Float>, arcMaxAngle: Int): List<Float
 }
 private fun getSweepsWithAnimatable(items: List<Float>, arcMaxAngle: Int): List<Pair<Float, Animatable<Float, AnimationVector1D>>>{
     val angles: MutableList<Float> = getAnglesFromItems(items, arcMaxAngle).toMutableList()
-    val angleSum=angles.sum()
     val pairs: List<Pair<Float, Animatable<Float, AnimationVector1D>>> = List(angles.size){ idx -> angles[idx] to Animatable(0f)}
     return pairs
 }
