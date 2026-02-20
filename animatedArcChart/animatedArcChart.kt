@@ -83,7 +83,7 @@ fun AnimatedArcChart(modifier: Modifier,
             }
         }
     }
-    Canvas(modifier.fillMaxSize().border(2.dp, Color.Green)) {
+    Canvas(modifier.fillMaxSize()) {
         val width=size.width
         val height=size.height
         val heightOffsetFromEdge=height-((referenceSpacing+dotRadius)*angles.size)
