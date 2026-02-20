@@ -6,9 +6,7 @@ This composable takes data, NOT angles.
 
 ## Input Parameters
 * modifier: Only affects canvas.
-* itemNames: The list of value names to be displayed.
-* values: The list of values being charted
-* colors: The colors of assigned to each value
+* items: a triple containing the name of the value, the value and the color of the value
 * strokeThickness: Thickness of the arc displaying the data
 * arcMaxAngle: Defines the max angle of the chart. Ex: If it equals 360, the chart will be full circle. 180 would make half a circle.
 * animationDurationMilliseconds: animation duration.
