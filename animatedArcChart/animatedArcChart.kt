@@ -19,21 +19,22 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastSumBy
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
 
-private fun getAnglesFromItems(items: List<Float>, arcMaxAngle: Int): List<Float>{
-    val normalizer = items.sum()
-    return MutableList(items.size){ idx -> ((items[idx]/normalizer)*arcMaxAngle) }
+private fun getAnglesFromItems(items: List<Triple<String, Float, Color>>, arcMaxAngle: Int): List<Float>{
+    val normalizer: Float = items.sumOf{ item -> item.second.toDouble() }.toFloat()
+    return MutableList(items.size){ idx -> ((items[idx].second/normalizer)*arcMaxAngle) }
 }
-private fun getSweepsWithAnimatable(items: List<Float>, arcMaxAngle: Int): List<Pair<Float, Animatable<Float, AnimationVector1D>>>{
+private fun getSweepsWithAnimatable(items: List<Triple<String, Float, Color>>, arcMaxAngle: Int): List<Pair<Float, Animatable<Float, AnimationVector1D>>>{
     val angles: MutableList<Float> = getAnglesFromItems(items, arcMaxAngle).toMutableList()
     val pairs: List<Pair<Float, Animatable<Float, AnimationVector1D>>> = List(angles.size){ idx -> angles[idx] to Animatable(0f)}
     return pairs
 }
 
-private fun getStartingPoints(items: List<Float>, arcMaxAngle: Int): List<Float>{
+private fun getStartingPoints(items: List<Triple<String, Float, Color>>, arcMaxAngle: Int): List<Float>{
     var cumulative=180f
     val res=mutableListOf<Float>()
     val angles: List<Float> = getAnglesFromItems(items, arcMaxAngle)
@@ -46,22 +47,17 @@ private fun getStartingPoints(items: List<Float>, arcMaxAngle: Int): List<Float>
 
 @Composable
 fun AnimatedArcChart(modifier: Modifier,
-                     itemNames: List<String>,
-                     values: List<Float>,
-                     colors: List<Color>,
+                     items: List<Triple<String, Float, Color>>,
                      strokeThickness: Float?= null,
                      arcMaxAngle: Int=360,
                      animationDurationMilliseconds:Int=1000,
                      parallelAnimation: Boolean=false,
-                     textStyle: TextStyle = TextStyle(),
+                     textStyle: TextStyle = TextStyle(color=Color.White),
                      dotRadius: Float=5f,
                      referenceSpacing: Float=20f,
                      graphSize: Size?=null){
-    if (colors.size < values.size || itemNames.size < values.size){
-        throw RuntimeException("Colors or Names are less than Values")
-    }
-    val angles = remember { getSweepsWithAnimatable(values, arcMaxAngle) }
-    val starts= remember { getStartingPoints(values, arcMaxAngle) }
+    val angles = remember { getSweepsWithAnimatable(items, arcMaxAngle) }
+    val starts= remember { getStartingPoints(items, arcMaxAngle) }
     val textMeasurer= rememberTextMeasurer()
     LaunchedEffect(angles) {
         if (parallelAnimation){
@@ -76,25 +72,27 @@ fun AnimatedArcChart(modifier: Modifier,
         }
         else {
             launch {
+                var idx=0
                 for (angle in angles) {
                     angle.second.animateTo(
                         angle.first,
                         animationSpec = tween(animationDurationMilliseconds)
                     )
+                    idx+=1
                 }
             }
         }
     }
-    Canvas(modifier.fillMaxSize()) {
+    Canvas(modifier.fillMaxSize().border(2.dp, Color.Green)) {
         val width=size.width
         val height=size.height
         val heightOffsetFromEdge=height-((referenceSpacing+dotRadius)*angles.size)
         val arcSize=graphSize ?: Size(min(width, height) /2f, min(width, height)/2f)
-        val maxTextSize=textMeasurer.measure(text=itemNames.maxBy { it.length }, style=textStyle).size
-        val infoOffsetX:Float=width-(maxTextSize.width*1.5f)
+        val maxTextSize=textMeasurer.measure(text=items.maxBy { it.first.length }.first, style=textStyle).size
+        val infoOffsetX:Float=width-(maxTextSize.width*1.5f)-10
         for (idx: Int in 0..<angles.size) {
             drawArc(
-                color = colors[idx],
+                color = items[idx].third,
                 topLeft = Offset((width/2f)-(arcSize.width/2f), (height / 2f)-(arcSize.height/2)),
                 startAngle = starts[idx],
                 sweepAngle = angles[idx].second.value,
@@ -103,13 +101,13 @@ fun AnimatedArcChart(modifier: Modifier,
                 size = arcSize
             )
             drawCircle(
-                color=colors[idx],
+                color=items[idx].third,
                 radius=dotRadius,
                 center=Offset(infoOffsetX, heightOffsetFromEdge+idx*referenceSpacing)
             )
             drawText(
                 textMeasurer=textMeasurer,
-                itemNames[idx],
+                items[idx].first,
                 style = textStyle,
                 topLeft =Offset(infoOffsetX+10, (heightOffsetFromEdge+idx*referenceSpacing)-10))
         }
