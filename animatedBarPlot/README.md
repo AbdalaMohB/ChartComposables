@@ -15,3 +15,6 @@ This is a bar plot composable for displaying data.
 * barCornerRadius: Controls the roundness of the bars
 * textStyle: Controls the text style of all text
 * lineColor: Controls the color of the plot lines
+
+/- Example:
+  <img width="992" height="553" alt="Screenshot from 2026-02-21 20-54-39" src="https://github.com/user-attachments/assets/c8f5521f-f380-4cdf-97cd-fdb4c214b13a" />
